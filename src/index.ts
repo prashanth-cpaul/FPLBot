@@ -33,11 +33,21 @@ async function handleSlackEvent(body: any): Promise<void> {
 
   const fplBotCommands = ['fplbot, get latest standings']
   if (typeof text !== 'undefined' && fplBotCommands.includes(text.trim())) {
-    const fplData = await getFplData()
+    const overallStats = await getOverallStats()
+    const { events, total_players }: any = overallStats
+    const currentGameweek = events.find(
+      ({ is_current }: { is_current: boolean }) => is_current,
+    )
+
+    const fplData = await getLeagueData()
     const {
       league,
       standings: { results },
     }: any = fplData
+
+    const playerStats: any[] = await getStatsForPlayers(
+      results.map(({ entry }: { entry: number }) => entry),
+    )
 
     const results_blocks = results.map(
       ({
@@ -47,7 +57,7 @@ async function handleSlackEvent(body: any): Promise<void> {
         entry_name,
         player_name,
         total,
-      }: any) => [
+      }: any, index: number) => [
         {
           type: 'section',
           fields: [
@@ -57,15 +67,27 @@ async function handleSlackEvent(body: any): Promise<void> {
             },
             {
               type: 'mrkdwn',
-              text: `*GW points:* ${event_total}`,
+              text: `*Gameweek points:* ${event_total}`,
             },
             {
               type: 'mrkdwn',
-              text: `*Player/Team:* ${player_name} - ${entry_name}`,
+              text: `*Player:* ${player_name}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Team:* ${entry_name}`,
             },
             {
               type: 'mrkdwn',
               text: `*Total:* ${total}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Gameweek rank:* ${playerStats[index].summary_event_rank}`,
+            },
+            {
+              type: 'mrkdwn',
+              text: `*Overall Rank:* ${playerStats[index].summary_overall_rank}`,
             },
           ],
         },
@@ -82,6 +104,22 @@ async function handleSlackEvent(body: any): Promise<void> {
           type: 'mrkdwn',
           text: `Here are the latest standings for :headingparrot: *${league.name}* :headingparrot:`,
         },
+      },
+      {
+        type: 'divider',
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*Total Players:* ${total_players}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*${currentGameweek.name} Average:* ${currentGameweek.average_entry_score}`,
+          },
+        ],
       },
       {
         type: 'divider',
@@ -106,9 +144,32 @@ async function handleSlackEvent(body: any): Promise<void> {
   }
 }
 
-const getFplData = async () => {
+const getOverallStats = async () => {
+  const response = await fetch(
+    'https://fantasy.premierleague.com/api/bootstrap-static/',
+  )
+  const data = await response.json()
+  return data
+}
+
+const getLeagueData = async () => {
   const response = await fetch(
     'https://fantasy.premierleague.com/api/leagues-classic/578497/standings',
+  )
+  const data = await response.json()
+  return data
+}
+
+const getStatsForPlayers = async (entries: number[]) => {
+  const playerStatsArray = await Promise.all(entries.map((entry: number) => {
+    return getPlayerStats(entry)
+  }))
+  return playerStatsArray
+}
+
+const getPlayerStats = async (entry: number) => {
+  const response = await fetch(
+    `https://fantasy.premierleague.com/api/entry/${entry}/`,
   )
   const data = await response.json()
   return data

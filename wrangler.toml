@@ -4,7 +4,7 @@ zone_id = ""
 account_id = "e8f15a69dcf800fd8ede7ff4b130e1d5"
 route = ""
 workers_dev = true
-compatibility_date = "2022-01-13"
+compatibility_date = "2022-05-20"
 
 [build]
 command = "yarn install && yarn run build"
