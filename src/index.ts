@@ -1,6 +1,8 @@
 import { ACCESS_TOKEN, SIGNING_SECRET } from './secrets'
+import { EntryData, LeagueData, OverallStats } from './types'
 const SIGN_VERSION = 'v0'
 const secretKeyData = new TextEncoder().encode(SIGNING_SECRET)
+const LEAGUE_CODE = 1040641
 
 /**
  * Modified version of hex to bytes function posted here:
@@ -19,6 +21,11 @@ function hexToBytes(hex: string): ArrayBuffer {
 }
 
 const rankChangeIcon = (currentRank: number, lastRank: number) => {
+  if(lastRank === 0) {
+    // lastRank is 0 at start of season
+    return ''
+  }
+
   if (currentRank < lastRank) {
     return ':arrow_down:'
   } else if (currentRank > lastRank) {
@@ -33,8 +40,8 @@ async function handleSlackEvent(body: any): Promise<void> {
 
   const fplBotCommands = ['fplbot, get latest standings']
   if (typeof text !== 'undefined' && fplBotCommands.includes(text.trim())) {
-    const overallStats = await getOverallStats()
-    const { events, total_players }: any = overallStats
+    const overallStats: OverallStats = await getOverallStats()
+    const { events, total_players } = overallStats
     const currentGameweek = events.find(
       ({ is_current }: { is_current: boolean }) => is_current,
     )
@@ -43,13 +50,13 @@ async function handleSlackEvent(body: any): Promise<void> {
     const {
       league,
       standings: { results },
-    }: any = fplData
+    } = fplData
 
-    const playerStats: any[] = await getStatsForPlayers(
-      results.map(({ entry }: { entry: number }) => entry),
+    const entriesData = await getEntriesData(
+      results.map(({ entry }) => entry),
     )
 
-    const results_blocks = results.map(
+    const league_standing_blocks = results.map(
       ({
         event_total,
         rank,
@@ -57,7 +64,7 @@ async function handleSlackEvent(body: any): Promise<void> {
         entry_name,
         player_name,
         total,
-      }: any, index: number) => [
+      }, index: number) => [
         {
           type: 'section',
           fields: [
@@ -83,11 +90,11 @@ async function handleSlackEvent(body: any): Promise<void> {
             },
             {
               type: 'mrkdwn',
-              text: `*Gameweek rank:* ${playerStats[index].summary_event_rank}`,
+              text: `*Gameweek rank:* ${new Intl.NumberFormat('en-AU').format(entriesData[index].summary_event_rank)}`,
             },
             {
               type: 'mrkdwn',
-              text: `*Overall Rank:* ${playerStats[index].summary_overall_rank}`,
+              text: `*Overall rank:* ${new Intl.NumberFormat('en-AU').format(entriesData[index].summary_overall_rank)}`,
             },
           ],
         },
@@ -113,18 +120,18 @@ async function handleSlackEvent(body: any): Promise<void> {
         fields: [
           {
             type: 'mrkdwn',
-            text: `*Total Players:* ${total_players}`,
+            text: `*Total Players:* ${new Intl.NumberFormat('en-AU').format(total_players)}`,
           },
-          {
+          ...(currentGameweek ? [{
             type: 'mrkdwn',
-            text: `*${currentGameweek.name} Average:* ${currentGameweek.average_entry_score}`,
-          },
+            text: `*${currentGameweek.name} average:* ${currentGameweek.average_entry_score}`,
+          }]: []),
         ],
       },
       {
         type: 'divider',
       },
-      ...results_blocks.flat(),
+      ...league_standing_blocks.flat(),
     ]
 
     const message = {
@@ -144,34 +151,34 @@ async function handleSlackEvent(body: any): Promise<void> {
   }
 }
 
-const getOverallStats = async () => {
+const getOverallStats: () => Promise<OverallStats> = async () => {
   const response = await fetch(
     'https://fantasy.premierleague.com/api/bootstrap-static/',
   )
-  const data = await response.json()
+  const data: OverallStats = await response.json()
   return data
 }
 
-const getLeagueData = async () => {
+const getLeagueData: () => Promise<LeagueData> = async () => {
   const response = await fetch(
-    'https://fantasy.premierleague.com/api/leagues-classic/578497/standings',
+    `https://fantasy.premierleague.com/api/leagues-classic/${LEAGUE_CODE}/standings`,
   )
-  const data = await response.json()
+  const data: LeagueData = await response.json()
   return data
 }
 
-const getStatsForPlayers = async (entries: number[]) => {
-  const playerStatsArray = await Promise.all(entries.map((entry: number) => {
-    return getPlayerStats(entry)
+const getEntriesData: (entries: number[]) => Promise<EntryData[]> = async (entries) => {
+  const entriesData = await Promise.all(entries.map((entry: number) => {
+    return getEntryData(entry)
   }))
-  return playerStatsArray
+  return entriesData
 }
 
-const getPlayerStats = async (entry: number) => {
+const getEntryData: (entry: number) => Promise<EntryData> = async (entry) => {
   const response = await fetch(
     `https://fantasy.premierleague.com/api/entry/${entry}/`,
   )
-  const data = await response.json()
+  const data: EntryData = await response.json()
   return data
 }
 
