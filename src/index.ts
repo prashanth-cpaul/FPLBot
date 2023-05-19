@@ -27,9 +27,9 @@ const rankChangeIcon = (currentRank: number, lastRank: number) => {
   }
 
   if (currentRank < lastRank) {
-    return ':arrow_down:'
-  } else if (currentRank > lastRank) {
     return ':arrow_up:'
+  } else if (currentRank > lastRank) {
+    return ':arrow_down:'
   } else {
     return ''
   }
