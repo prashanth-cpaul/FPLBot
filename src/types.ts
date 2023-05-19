@@ -1,6 +1,6 @@
 enum CHIP {
-  BENCH_BOOST = "bboost",
-  TRIPLE_CAPTAIN = "3xc",
+  BENCH_BOOST = 'bboost',
+  TRIPLE_CAPTAIN = '3xc',
 }
 
 interface ChipPlay {
@@ -55,7 +55,7 @@ interface Result {
   entry: number
   entry_name: string
 }
- 
+
 type LeagueType = 's' | 'x'
 
 interface League {
@@ -66,13 +66,13 @@ interface League {
   closed: boolean
   max_entries: number | null
   league_type: LeagueType
-  scoring: "c" // possible enum
+  scoring: 'c' // possible enum
   admin_entry: number | null
   start_event: number
   entry_can_leave?: boolean
   entry_can_admin?: boolean
   entry_can_invite?: boolean
-  code_privacy: "p" // possible enum
+  code_privacy: 'p' // possible enum
   has_cup: boolean
   cup_league: boolean | null // not sure about type
   cup_qualified?: boolean | null // not sure about type

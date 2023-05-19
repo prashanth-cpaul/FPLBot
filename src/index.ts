@@ -21,7 +21,7 @@ function hexToBytes(hex: string): ArrayBuffer {
 }
 
 const rankChangeIcon = (currentRank: number, lastRank: number) => {
-  if(lastRank === 0) {
+  if (lastRank === 0) {
     // lastRank is 0 at start of season
     return ''
   }
@@ -35,6 +35,7 @@ const rankChangeIcon = (currentRank: number, lastRank: number) => {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleSlackEvent(body: any): Promise<void> {
   const text = body?.event?.text as string | undefined
 
@@ -52,19 +53,13 @@ async function handleSlackEvent(body: any): Promise<void> {
       standings: { results },
     } = fplData
 
-    const entriesData = await getEntriesData(
-      results.map(({ entry }) => entry),
-    )
+    const entriesData = await getEntriesData(results.map(({ entry }) => entry))
 
     const league_standing_blocks = results.map(
-      ({
-        event_total,
-        rank,
-        last_rank,
-        entry_name,
-        player_name,
-        total,
-      }, index: number) => [
+      (
+        { event_total, rank, last_rank, entry_name, player_name, total },
+        index: number,
+      ) => [
         {
           type: 'section',
           fields: [
@@ -90,11 +85,15 @@ async function handleSlackEvent(body: any): Promise<void> {
             },
             {
               type: 'mrkdwn',
-              text: `*Gameweek rank:* ${new Intl.NumberFormat('en-AU').format(entriesData[index].summary_event_rank)}`,
+              text: `*Gameweek rank:* ${new Intl.NumberFormat('en-AU').format(
+                entriesData[index].summary_event_rank,
+              )}`,
             },
             {
               type: 'mrkdwn',
-              text: `*Overall rank:* ${new Intl.NumberFormat('en-AU').format(entriesData[index].summary_overall_rank)}`,
+              text: `*Overall rank:* ${new Intl.NumberFormat('en-AU').format(
+                entriesData[index].summary_overall_rank,
+              )}`,
             },
           ],
         },
@@ -120,12 +119,18 @@ async function handleSlackEvent(body: any): Promise<void> {
         fields: [
           {
             type: 'mrkdwn',
-            text: `*Total Players:* ${new Intl.NumberFormat('en-AU').format(total_players)}`,
+            text: `*Total Players:* ${new Intl.NumberFormat('en-AU').format(
+              total_players,
+            )}`,
           },
-          ...(currentGameweek ? [{
-            type: 'mrkdwn',
-            text: `*${currentGameweek.name} average:* ${currentGameweek.average_entry_score}`,
-          }]: []),
+          ...(currentGameweek
+            ? [
+                {
+                  type: 'mrkdwn',
+                  text: `*${currentGameweek.name} average:* ${currentGameweek.average_entry_score}`,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -167,10 +172,14 @@ const getLeagueData: () => Promise<LeagueData> = async () => {
   return data
 }
 
-const getEntriesData: (entries: number[]) => Promise<EntryData[]> = async (entries) => {
-  const entriesData = await Promise.all(entries.map((entry: number) => {
-    return getEntryData(entry)
-  }))
+const getEntriesData: (entries: number[]) => Promise<EntryData[]> = async (
+  entries,
+) => {
+  const entriesData = await Promise.all(
+    entries.map((entry: number) => {
+      return getEntryData(entry)
+    }),
+  )
   return entriesData
 }
 
@@ -182,7 +191,10 @@ const getEntryData: (entry: number) => Promise<EntryData> = async (entry) => {
   return data
 }
 
-const generateJsonResponse = (response: any, status = 200): Response => {
+const generateJsonResponse = (
+  response: { status?: 'Unauthorized' | 'OK'; challenge?: unknown },
+  status = 200,
+): Response => {
   const json = JSON.stringify(response)
 
   return new Response(json, {
@@ -231,6 +243,7 @@ const handleRequest = async (request: Request): Promise<Response> => {
     encoder.encode(baseString),
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { type: eventType, challenge, ...body }: any = JSON.parse(text)
 
   switch (eventType) {
