@@ -1,12 +1,8 @@
 name = "fpl-bot"
-type = "javascript"
-zone_id = ""
+main = "src/index.ts"
 account_id = "e8f15a69dcf800fd8ede7ff4b130e1d5"
-route = ""
 workers_dev = true
-compatibility_date = "2022-05-20"
+compatibility_date = "2023-05-19"
 
 [build]
-command = "yarn install && yarn run build"
-[build.upload]
-format = "service-worker"
+command = "yarn install"

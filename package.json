@@ -1,12 +1,12 @@
 {
   "name": "fplbot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cloudflare worker to communicate fpl stats to a slack channel",
   "main": "dist/worker.js",
   "scripts": {
-    "build": "webpack",
-    "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}'",
-    "lint": "eslint src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}'"
+    "deploy": "yarn wrangler deploy",
+    "format": "prettier --write 'src/**/*.ts'",
+    "lint": "eslint src && prettier --check 'src/**/*.ts'"
   },
   "author": "author",
   "license": "MIT OR Apache-2.0",
@@ -18,18 +18,15 @@
     ]
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^3.0.0",
-    "@types/jest": "^26.0.23",
-    "@types/service-worker-mock": "^2.0.1",
+    "@cloudflare/workers-types": "^4.20230511.0",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-config-typescript": "^3.0.0",
     "prettier": "^2.3.0",
-    "ts-loader": "^9.2.2",
     "typescript": "^4.3.2",
-    "webpack": "^5.38.1",
-    "webpack-cli": "^4.7.0"
-  }
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {}
 }
