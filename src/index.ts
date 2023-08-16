@@ -2,7 +2,7 @@ import { ACCESS_TOKEN, SIGNING_SECRET } from './secrets'
 import { EntryData, LeagueData, OverallStats } from './types'
 const SIGN_VERSION = 'v0'
 const secretKeyData = new TextEncoder().encode(SIGNING_SECRET)
-const LEAGUE_CODE = 1040641
+const LEAGUE_CODE = 351340
 
 /**
  * Modified version of hex to bytes function posted here:

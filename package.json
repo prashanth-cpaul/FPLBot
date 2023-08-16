@@ -4,7 +4,7 @@
   "description": "Cloudflare worker to communicate fpl stats to a slack channel",
   "main": "dist/worker.js",
   "scripts": {
-    "deploy": "yarn wrangler deploy",
+    "deploy": "wrangler deploy",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint src && prettier --check 'src/**/*.ts'"
   },
